@@ -1,0 +1,30 @@
+[DATABASE]
+sql_connection = mysql://<%= @db_user %>:<%= @db_password %>@<%= @db_ip_address %>/<%= @db_name %>
+sqlalchemy_pool_size = <%= @sqlalchemy_pool_size %>
+reconnect_interval = 2
+
+[OVS]
+tenant_network_type = <%= @ovs_network_type %>
+integration_bridge = <%= @ovs_integration_bridge %>
+local_ip = <%= @ovs_local_ip %>
+
+<% if @ovs_network_type == "gre" %>
+enable_tunneling = True
+tunnel_bridge = <%= @ovs_tunnel_bridge %>
+tunnel_id_ranges = <%= @ovs_tunnel_ranges %>
+<% end %>
+
+<% if not @ovs_vlan_range.empty? %>
+network_vlan_ranges = <%= @ovs_vlan_range %>
+<% end %>
+<% if not @ovs_bridge_mapping.empty? %>
+bridge_mappings = <%= @ovs_bridge_mapping %>
+<% end %>
+
+[SECURITYGROUP]
+firewall_driver = <%= @ovs_firewall_driver %>
+
+[AGENT]
+state_path = /var/run/neutron
+debug = <%= @ovs_debug %>
+verbose = <%= @ovs_verbose %>

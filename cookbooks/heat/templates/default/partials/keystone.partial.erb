@@ -1,0 +1,11 @@
+[keystone_authtoken]
+signing_dir=/var/cache/heat
+
+admin_password=<%= @heat_password %>
+admin_user=<%= @heat_admin %>
+admin_tenant_name=<%= @heat_tenant %>
+
+auth_uri=<%= @keystone_auth_url %>
+auth_protocol=<%= @keystone_auth_protocol %>
+auth_port=<%= @keystone_auth_port %>
+auth_host=<%= @keystone_auth_host %> 

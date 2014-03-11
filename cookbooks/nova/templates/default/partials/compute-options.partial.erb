@@ -1,0 +1,31 @@
+compute_manager=nova.compute.manager.ComputeManager
+allow_resize_to_same_host=true
+sql_connection=mysql://<%= @user %>:<%= @passwd %>@<%= @db_ipaddress %>/<%= @db_name %>
+connection_type=<%= @connection_type %>
+<% case @connection_type -%>
+<% when "libvirt" -%>
+compute_driver=libvirt.LibvirtDriver
+libvirt_type=<%= @virt_type %>
+# Inject the ssh public key at boot time (default: true)
+libvirt_inject_key=<%= @libvirt_inject_key %>
+libvirt_inject_password=<%= @libvirt_inject_password %>
+libvirt_inject_partition=<%= @libvirt_inject_partition %>
+<% if not @libvirt_cpu_mode.nil? -%>
+libvirt_cpu_mode=<%= @libvirt_cpu_mode %>
+<% end %>
+<% if @libvirt_cpu_mode == "custom" and %w{kvm qemu}.include?(@virt_type) -%>
+libvirt_cpu_model=<%= @libvirt_cpu_model %>
+<% end %>
+disk_cachemodes="<%= @disk_cachemodes.sort.join(',') %>"
+block_migration_flag=<%= @block_migration_flag %>
+<% end -%>
+# Command prefix to use for running commands as root (default: sudo)
+rootwrap_config=/etc/nova/rootwrap.conf
+# Should unused base images be removed? (default: false)
+remove_unused_base_images=<%= @remove_unused_base_images %>
+# Unused resized base images younger than this will not be removed (default: 3600)
+remove_unused_resized_minimum_age_seconds=<%= @remove_unused_resized_minimum_age_seconds %>
+# Unused unresized base images younger than this will not be removed (default: 86400)
+remove_unused_original_minimum_age_seconds=<%= @remove_unused_original_minimum_age_seconds %>
+# Write a checksum for files in _base to disk (default: false)
+checksum_base_images=<%= @checksum_base_images %>

@@ -1,0 +1,19 @@
+$ModLoad imfile.so
+
+# Do we queue messages when the destination syslog server is
+# offline or not accepting connections?  Default to yes
+<% if not node["syslog"]["queue_offline_messages"].nil? -%>
+$MainMsgQueueType LinkedList
+$MainMsgQueueFileName mainQueue
+$MainMsgQueueSaveOnShutdown on
+$MainMsgQueueMaxFileSize 1g
+
+$WorkDirectory /var/spool/rsyslog
+$ActionName Action
+$ActionQueueType LinkedList
+$ActionQueueFilename dQueue
+$ActionQueueSaveOnShutdown on
+$ActionQueueMaxDiskSpace 1g
+$ActionResumeRetryCount -1
+$ActionResumeInterval 10
+<% end -%>

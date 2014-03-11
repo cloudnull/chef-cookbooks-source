@@ -1,0 +1,14 @@
+{% load compress %}
+
+{% compress css %}
+<link href='{{ STATIC_URL }}dashboard/less/horizon.less' type='text/less' media='screen' rel='stylesheet' />
+<% if not node["horizon"]["theme_css_list"].nil? %>
+  <% node["horizon"]["theme_css_list"].each do |cssfile| %>
+<link href='{{ STATIC_URL }}dashboard/css/<%= cssfile %>' type='text/css' media='screen' rel='stylesheet' />
+  <% end %>
+<% end %>
+<link href='{{ STATIC_URL }}dashboard/less/rickshaw.css' type='text/css' media='screen' rel='stylesheet' />
+<link href='{{ STATIC_URL }}dashboard/less/horizon_charts.less' type='text/less' media='screen' rel='stylesheet' />
+{% endcompress %}
+
+<link rel="shortcut icon" href="{{ STATIC_URL }}dashboard/img/favicon.ico"/>

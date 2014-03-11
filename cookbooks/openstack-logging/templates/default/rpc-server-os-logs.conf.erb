@@ -1,0 +1,67 @@
+# haproxy logs (logged to loca1)
+$template DYNhaproxy,"/var/log/rsyslog/%HOSTNAME%/haproxy/haproxy.log"
+if $fromhost-ip != '127.0.0.1' and $syslogfacility-text == 'local1' then ?DYNhaproxy
+if $fromhost-ip == '127.0.0.1' and $syslogfacility-text == 'local1' then /var/log/haproxy.log
+if $syslogfacility-text == 'local1' then ~
+
+# glance logs
+$template DYNglance_api,"/var/log/rsyslog/%HOSTNAME%/glance/api.log"
+$template DYNglance_registry,"/var/log/rsyslog/%HOSTNAME%/glance/registry.log"
+$template DYNglance_cache,"/var/log/rsyslog/%HOSTNAME%/glance/image-cache.log"
+$template DYNglance_scrubber,"/var/log/rsyslog/%HOSTNAME%/glance/scrubber.log"
+if $fromhost-ip != '127.0.0.1' and ($syslogfacility-text == 'local6' and $syslogtag == 'glance-api_log:') then ?DYNglance_api
+if $fromhost-ip != '127.0.0.1' and ($syslogfacility-text == 'local6' and $syslogtag == 'glance-api_log:') then ~
+if $fromhost-ip != '127.0.0.1' and ($syslogfacility-text == 'local6' and $syslogtag == 'glance-registry_log:') then ?DYNglance_registry
+if $fromhost-ip != '127.0.0.1' and ($syslogfacility-text == 'local6' and $syslogtag == 'glance-registry_log:') then ~
+if $fromhost-ip != '127.0.0.1' and ($syslogfacility-text == 'local6' and $syslogtag == 'glance-cache_log:') then ?DYNglance_cache
+if $fromhost-ip != '127.0.0.1' and ($syslogfacility-text == 'local6' and $syslogtag == 'glance-cache_log:') then ~
+if $fromhost-ip != '127.0.0.1' and ($syslogfacility-text == 'local6' and $syslogtag == 'glance-scrubber_log:') then ?DYNglance_scrubber
+if $fromhost-ip != '127.0.0.1' and ($syslogfacility-text == 'local6' and $syslogtag == 'glance-scrubber_log:') then ~
+
+# keystone logs
+$template DYNkeystone,"/var/log/rsyslog/%HOSTNAME%/keystone/keystone.log"
+if $fromhost-ip != '127.0.0.1' and ($syslogfacility-text == 'local6' and $syslogtag == 'keystone_log:') then ?DYNkeystone
+if $fromhost-ip != '127.0.0.1' and ($syslogfacility-text == 'local6' and $syslogtag == 'keystone_log:') then ~
+
+# cinder templates
+$template DYNcinder_api,"/var/log/rsyslog/%HOSTNAME%/cinder/cinder-api.log"
+$template DYNcinder_scheduler,"/var/log/rsyslog/%HOSTNAME%/cinder/cinder-scheduler.log"
+$template DYNcinder_volume,"/var/log/rsyslog/%HOSTNAME%/cinder/cinder-volume.log"
+if $fromhost-ip != '127.0.0.1' and ($syslogfacility-text == 'local6' and $syslogtag == 'cinder-api_log:') then ?DYNcinder_api
+if $fromhost-ip != '127.0.0.1' and ($syslogfacility-text == 'local6' and $syslogtag == 'cinder-api_log:') then ~
+if $fromhost-ip != '127.0.0.1' and ($syslogfacility-text == 'local6' and $syslogtag == 'cinder-scheduler_log:') then ?DYNcinder_scheduler
+if $fromhost-ip != '127.0.0.1' and ($syslogfacility-text == 'local6' and $syslogtag == 'cinder-scheduler_log:') then ~
+if $fromhost-ip != '127.0.0.1' and ($syslogfacility-text == 'local6' and $syslogtag == 'cinder-volume_log:') then ?DYNcinder_volume
+if $fromhost-ip != '127.0.0.1' and ($syslogfacility-text == 'local6' and $syslogtag == 'cinder-volume_log:') then ~
+
+# nova templates
+$template DYNnova_api_ec2,"/var/log/rsyslog/%HOSTNAME%/nova/nova-api-ec2.log"
+$template DYNnova_api_os_compute,"/var/log/rsyslog/%HOSTNAME%/nova/nova-api-os-compute.log"
+$template DYNnova_cert,"/var/log/rsyslog/%HOSTNAME%/nova/nova-cert.log"
+$template DYNnova_conductor,"/var/log/rsyslog/%HOSTNAME%/nova/nova-conductor.log"
+$template DYNnova_consoleauth,"/var/log/rsyslog/%HOSTNAME%/nova/nova-consoleauth.log"
+$template DYNnova_manage,"/var/log/rsyslog/%HOSTNAME%/nova/nova-manage.log"
+$template DYNnova_scheduler,"/var/log/rsyslog/%HOSTNAME%/nova/nova-scheduler.log"
+$template DYNnova_network,"/var/log/rsyslog/%HOSTNAME%/nova/nova-network.log"
+$template DYNnova_compute,"/var/log/rsyslog/%HOSTNAME%/nova/nova-compute.log"
+$template DYNnova_api_metadata,"/var/log/rsyslog/%HOSTNAME%/nova/nova-api-metadata.log"
+if $fromhost-ip != '127.0.0.1' and ($syslogfacility-text == 'local6' and $syslogtag == 'nova-api-ec2_log:') then ?DYNnova_api_ec2
+if $fromhost-ip != '127.0.0.1' and ($syslogfacility-text == 'local6' and $syslogtag == 'nova-api-ec2_log:') then ~
+if $fromhost-ip != '127.0.0.1' and ($syslogfacility-text == 'local6' and $syslogtag == 'nova-api-os-compute_log:') then ?DYNnova_api_os_compute
+if $fromhost-ip != '127.0.0.1' and ($syslogfacility-text == 'local6' and $syslogtag == 'nova-api-os-compute_log:') then ~
+if $fromhost-ip != '127.0.0.1' and ($syslogfacility-text == 'local6' and $syslogtag == 'nova-cert_log:') then ?DYNnova_cert
+if $fromhost-ip != '127.0.0.1' and ($syslogfacility-text == 'local6' and $syslogtag == 'nova-cert_log:') then ~
+if $fromhost-ip != '127.0.0.1' and ($syslogfacility-text == 'local6' and $syslogtag == 'nova-conductor_log:') then ?DYNnova_conductor
+if $fromhost-ip != '127.0.0.1' and ($syslogfacility-text == 'local6' and $syslogtag == 'nova-conductor_log:') then ~
+if $fromhost-ip != '127.0.0.1' and ($syslogfacility-text == 'local6' and $syslogtag == 'nova-consoleauth_log:') then ?DYNnova_consoleauth
+if $fromhost-ip != '127.0.0.1' and ($syslogfacility-text == 'local6' and $syslogtag == 'nova-consoleauth_log:') then ~
+if $fromhost-ip != '127.0.0.1' and ($syslogfacility-text == 'local6' and $syslogtag == 'nova-manage_log:') then ?DYNnova_manage
+if $fromhost-ip != '127.0.0.1' and ($syslogfacility-text == 'local6' and $syslogtag == 'nova-manage_log:') then ~
+if $fromhost-ip != '127.0.0.1' and ($syslogfacility-text == 'local6' and $syslogtag == 'nova-scheduler_log:') then ?DYNnova_scheduler
+if $fromhost-ip != '127.0.0.1' and ($syslogfacility-text == 'local6' and $syslogtag == 'nova-scheduler_log:') then ~
+if $fromhost-ip != '127.0.0.1' and ($syslogfacility-text == 'local6' and $syslogtag == 'nova-network_log:') then ?DYNnova_network
+if $fromhost-ip != '127.0.0.1' and ($syslogfacility-text == 'local6' and $syslogtag == 'nova-network_log:') then ~
+if $fromhost-ip != '127.0.0.1' and ($syslogfacility-text == 'local6' and $syslogtag == 'nova-compute_log:') then ?DYNnova_compute
+if $fromhost-ip != '127.0.0.1' and ($syslogfacility-text == 'local6' and $syslogtag == 'nova-compute_log:') then ~
+if $fromhost-ip != '127.0.0.1' and ($syslogfacility-text == 'local6' and $syslogtag == 'nova-api-metadata_log:') then ?DYNnova_api_metadata
+if $fromhost-ip != '127.0.0.1' and ($syslogfacility-text == 'local6' and $syslogtag == 'nova-api-metadata_log:') then ~

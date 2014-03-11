@@ -1,0 +1,13 @@
+rabbit_userid=<%= @rabbit_username %>
+rabbit_password=<%= @rabbit_password %>
+rabbit_hosts=<%= @rabbit_host %>:<%= @rabbit_port %>
+rabbit_ha_queues=<%= @rabbit_ha_queues %>
+
+notification_driver = <%= @notification_driver %>
+notification_topics = <%= @notification_topics %>
+
+##### RPC BACKEND #####
+rpc_backend = heat.openstack.common.rpc.impl_kombu
+
+##### EXCHANGE #####
+control_exchange=heat

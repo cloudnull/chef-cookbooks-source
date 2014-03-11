@@ -1,0 +1,9 @@
+[heat_api]
+bind_host=<%= @heat_api_host %>
+bind_port=<%= @heat_api_port %>
+backlog=<%= @heat_api_backlog %>
+workers=<%= @heat_api_workers %>
+<% if node["heat"]["ssl"]["enabled"] || @heat_api_scheme == "https" -%>
+cert_file=<%= @heat_api_cert %>
+key_file=<%= @heat_api_key %>
+<% end -%>

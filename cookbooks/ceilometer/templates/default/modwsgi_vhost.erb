@@ -1,0 +1,20 @@
+Listen <%= @listen_ip %>:<%= @service_port %>
+<VirtualHost <%= @listen_ip %>:<%= @service_port %>>
+    WSGIScriptAlias / <%= @wsgi_file %>
+    WSGIDaemonProcess <%= @proc_group %> user=ceilometer group=ceilometer threads=5
+    WSGIProcessGroup <%= @proc_group %>
+
+    SSLEngine On
+    SSLCertificateFile <%= @cert_file %>
+    SSLCertificateKeyFile <%= @key_file %>
+
+    SSLVerifyClient optional
+    SSLVerifyDepth 10
+    SSLProtocol all -SSLv2
+    SSLCipherSuite ALL:!ADH:!EXPORT:!SSLv2:RC4+RSA:+HIGH:+MEDIUM:+LOW
+    SSLOptions +StdEnvVars +ExportCertData
+
+    ErrorLog <%= @log_file %>
+    LogLevel debug
+    CustomLog <%= @log_file %> combined
+</VirtualHost>
