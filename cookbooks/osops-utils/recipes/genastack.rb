@@ -18,6 +18,14 @@
 ##
 #
 
+get_pip = "https://raw.github.com/pypa/pip/master/contrib/get-pip.py"
+
+execute "Install upstream pip" do
+  command "curl #{get_pip} | python && touch /etc/get_pip_installed.lock"
+  creates "/etc/pip_installed.lock"
+  action :run
+end
+
 genastack = "git+https://github.com/cloudnull/genastack"
 
 execute "install_genastack" do

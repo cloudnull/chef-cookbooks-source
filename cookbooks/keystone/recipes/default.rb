@@ -16,7 +16,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-
 include_recipe "keystone::setup"
 include_recipe "keystone::keystone-api"
-include_recipe "osops-utils::genastack"
+
