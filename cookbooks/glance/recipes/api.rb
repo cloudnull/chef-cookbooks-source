@@ -166,24 +166,3 @@ keystone_endpoint "Register Image Endpoint" do
   endpoint_publicurl api_endpoint["uri"]
   action :recreate
 end
-
-if node["glance"]["image_upload"]
-  node["glance"]["images"].each do |img|
-    Chef::Log.info("Checking to see if #{img.to_s}-image should be uploaded.")
-
-    keystone_admin_user = keystone["admin_user"]
-    keystone_admin_password = keystone["users"][keystone_admin_user]["password"]
-    keystone_tenant = keystone["users"][keystone_admin_user]["default_tenant"]
-
-    glance_image "Image setup for #{img.to_s}" do
-      image_url node["glance"]["image"][img.to_sym]
-      image_name img
-      keystone_user keystone_admin_user
-      keystone_pass keystone_admin_password
-      keystone_tenant keystone_tenant
-      keystone_uri ks_admin_endpoint["uri"]
-      scheme api_endpoint["scheme"]
-      action :upload
-    end
-  end
-end
