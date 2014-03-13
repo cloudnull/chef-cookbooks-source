@@ -19,13 +19,6 @@
 #
 #
 
-# Install all of glance
-execute "install_genastack_glance" do
-  command "genastack glance"
-  action :run
-end
-
-
 # only run this if do_package_upgrade is enabled.  If you upgrade the package
 # outside of chef you will need to run 'glance-manage db_sync' by hand.
 execute "glance-manage db_sync" do
