@@ -45,13 +45,54 @@ file "/var/log/keystone/keystone.log" do
   only_if { ::File.exists?("/var/log/keystone/keystone.log") }
 end
 
-file "/var/lib/keystone/keystone.db" do
-  action :delete
+%w{ssl ssl/certs}.each do |dir|
+  directory "/etc/keystone/#{dir}" do
+    action :create
+    owner  "keystone"
+    group  "keystone"
+    mode   "0755"
+  end
+end
+
+directory "/etc/keystone/ssl/private" do
+  action :create
+  owner  "keystone"
+  group  "keystone"
+  mode   "0700"
 end
 
 ks_setup_role = node["keystone"]["setup_role"]
 ks_mysql_role = node["keystone"]["mysql_role"]
 ks_api_role = node["keystone"]["api_role"]
+keystone = get_settings_by_role(ks_setup_role, "keystone")
+
+if node["keystone"]["pki"]["enabled"] == true
+  file "/etc/keystone/ssl/private/signing_key.pem" do
+    owner   "keystone"
+    group   "keystone"
+    mode    "0400"
+    content keystone["pki"]["key"]
+  end
+
+  file "/etc/keystone/ssl/certs/signing_cert.pem" do
+    owner   "keystone"
+    group   "keystone"
+    mode    "0644"
+    content keystone["pki"]["cert"]
+  end
+
+  file "/etc/keystone/ssl/certs/ca.pem" do
+    owner   "keystone"
+    group   "keystone"
+    mode    "0444"
+    content keystone["pki"]["cacert"]
+  end
+end
+
+
+file "/var/lib/keystone/keystone.db" do
+  action :delete
+end
 
 if node.recipe? "apache2"
   # Used if SSL was or is enabled
