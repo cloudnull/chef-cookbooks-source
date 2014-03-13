@@ -18,12 +18,11 @@
 #
 
 # make sure we die early if there are keystone-setups other than us
-if get_role_count(ks_setup_role, false) > 0
+if get_role_count(node["keystone"]["setup_role"], false) > 0
   msg = "You can only have one node with the keystone-setup role"
   Chef::Application.fatal! msg
 end
 
-ks_setup_role = node["keystone"]["setup_role"]
 ks_mysql_role = node["keystone"]["mysql_role"]
 ks_api_role = node["keystone"]["api_role"]
 
