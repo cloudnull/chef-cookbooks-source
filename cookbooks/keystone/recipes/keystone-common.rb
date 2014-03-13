@@ -78,18 +78,10 @@ end_point_schemes = [ks_service_bind["scheme"],
 
 service "keystone" do
   service_name platform_options["keystone_service"]
-  # TODO(breu): this may need to be an attribute if it breaks on others..
-  case node["platform"]
-  when "ubuntu"
-      provider Chef::Provider::Service::Upstart
-  end
-  # end TODO
   supports :status => true, :restart => true
   unless end_point_schemes.any? {|scheme| scheme == "https"}
-    if node.recipe? "apache2"
-      notifies :run, "execute[Disable https]", :immediately
-    end
-    action [:enable]
+    action :enable
+    subscribes :restart, "template[/etc/keystone/keystone.conf]", :immediately
     notifies :run, "execute[Keystone: sleep]", :immediately
   else
     action [ :disable, :stop ]
