@@ -41,12 +41,17 @@ end_point_schemes = [
   ks_internal_bind["scheme"]
 ]
 
+execute "Keystone: sleep" do
+  command "sleep 10s"
+  action :nothing
+end
+
 platform_options = node["keystone"]["platform"]
 service "keystone" do
   service_name platform_options["keystone_service"]
   supports :status => true, :restart => true
   unless end_point_schemes.any? {|scheme| scheme == "https"}
-    action :enable
+    action [ :enable, :start ]
     subscribes :restart, "template[/etc/keystone/keystone.conf]", :immediately
     notifies :run, "execute[Keystone: sleep]", :immediately
   else

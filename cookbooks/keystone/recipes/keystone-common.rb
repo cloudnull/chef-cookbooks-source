@@ -121,11 +121,6 @@ if node.recipe? "apache2"
   end
 end
 
-execute "Keystone: sleep" do
-  command "sleep 10s"
-  action :nothing
-end
-
 ks_admin_bind = get_bind_endpoint("keystone", "admin-api")
 ks_service_bind = get_bind_endpoint("keystone", "service-api")
 
