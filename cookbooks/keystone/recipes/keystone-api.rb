@@ -71,6 +71,30 @@ if node["keystone"]["pki"]["enabled"] == true
   end
 end
 
+service "keystone" do
+  service_name platform_options["keystone_service"]
+  supports :status => true, :restart => true
+  unless end_point_schemes.any? {|scheme| scheme == "https"}
+    action :enable
+    subscribes :restart, "template[/etc/keystone/keystone.conf]", :delayed
+    notifies :run, "execute[Keystone: sleep]", :delayed
+  else
+    action [ :disable, :stop ]
+  end
+end
+
+# Setup SSL if "scheme" is set to https
+if end_point_schemes.any? {|scheme| scheme == "https"}
+  include_recipe "keystone::keystone-ssl"
+else
+  if node.recipe? "apache2"
+    apache_site "openstack-keystone" do
+      enable false
+      notifies :restart, "service[apache2]", :delayed
+    end
+  end
+end
+
 ks_ns = "keystone"
 ks_admin_endpoint = get_access_endpoint(ks_api_role, ks_ns, "admin-api")
 ks_service_endpoint = get_access_endpoint(ks_api_role, ks_ns, "service-api")

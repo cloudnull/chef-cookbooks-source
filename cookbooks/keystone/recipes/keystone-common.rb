@@ -34,6 +34,7 @@ execute "keystone-manage pki_setup" do
   group "keystone"
   command "keystone-manage pki_setup"
   action :run
+  not_if {File.exists?("/etc/keystone/ssl/private/signing_key.pem")}
 end
 
 # fixup the keystone.log ownership if it exists
@@ -92,30 +93,6 @@ ks_internal_bind = get_bind_endpoint("keystone", "internal-api")
 end_point_schemes = [ks_service_bind["scheme"],
                      ks_admin_bind["scheme"],
                      ks_internal_bind["scheme"]]
-
-service "keystone" do
-  service_name platform_options["keystone_service"]
-  supports :status => true, :restart => true
-  unless end_point_schemes.any? {|scheme| scheme == "https"}
-    action :enable
-    subscribes :restart, "template[/etc/keystone/keystone.conf]", :delayed
-    notifies :run, "execute[Keystone: sleep]", :delayed
-  else
-    action [ :disable, :stop ]
-  end
-end
-
-# Setup SSL if "scheme" is set to https
-if end_point_schemes.any? {|scheme| scheme == "https"}
-  include_recipe "keystone::keystone-ssl"
-else
-  if node.recipe? "apache2"
-    apache_site "openstack-keystone" do
-      enable false
-      notifies :restart, "service[apache2]", :delayed
-    end
-  end
-end
 
 settings = get_settings_by_role(ks_setup_role, "keystone")
 mysql_info = get_mysql_endpoint(ks_mysql_role)
@@ -177,14 +154,6 @@ template "/etc/keystone/keystone.conf" do
     :notification_driver => notification_driver,
     :notification_topics => node["keystone"]["notification"]["topics"]
   )
-
-  # FIXME: Workaround for https://bugs.launchpad.net/keystone/+bug/1176270
-  subscribes :create, "keystone_role[Get Member role-id]", :delayed
-  unless end_point_schemes.any? {|scheme| scheme == "https"}
-    notifies :restart, "service[keystone]", :delayed
-  else
-    notifies :restart, "service[apache2]", :delayed
-  end
 end
 
 # set up a token cleaning job

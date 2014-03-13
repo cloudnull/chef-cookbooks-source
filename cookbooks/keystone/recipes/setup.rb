@@ -17,15 +17,15 @@
 # limitations under the License.
 #
 
-ks_setup_role = node["keystone"]["setup_role"]
-ks_mysql_role = node["keystone"]["mysql_role"]
-ks_api_role = node["keystone"]["api_role"]
-
 # make sure we die early if there are keystone-setups other than us
 if get_role_count(ks_setup_role, false) > 0
   msg = "You can only have one node with the keystone-setup role"
   Chef::Application.fatal! msg
 end
+
+ks_setup_role = node["keystone"]["setup_role"]
+ks_mysql_role = node["keystone"]["mysql_role"]
+ks_api_role = node["keystone"]["api_role"]
 
 ::Chef::Recipe.send(:include, Opscode::OpenSSL::Password)
 include_recipe "mysql::client"
@@ -69,27 +69,31 @@ end
 # Defined in osops-utils/libraries
 # Up stream fix:
 # https://github.com/openstack/keystone/commit/9faf255cf54c1386527c67a2d75074c547aa407a
-add_index_stopgap("mysql",
-                  node["keystone"]["db"]["name"],
-                  node["keystone"]["db"]["username"],
-                  node["keystone"]["db"]["password"],
-                  "rax_ix_token_valid",
-                  "token",
-                  "valid",
-                  "execute[keystone-manage db_sync]",
-                  :run,
-                  :role => ks_mysql_role)
+add_index_stopgap(
+  "mysql",
+  node["keystone"]["db"]["name"],
+  node["keystone"]["db"]["username"],
+  node["keystone"]["db"]["password"],
+  "rax_ix_token_valid",
+  "token",
+  "valid",
+  "execute[keystone-manage db_sync]",
+  :run,
+  :role => ks_mysql_role
+)
 
-add_index_stopgap("mysql",
-                  node["keystone"]["db"]["name"],
-                  node["keystone"]["db"]["username"],
-                  node["keystone"]["db"]["password"],
-                  "rax_ix_token_expires",
-                  "token",
-                  "expires",
-                  "execute[keystone-manage db_sync]",
-                  :run,
-                  :role => ks_mysql_role)
+add_index_stopgap(
+  "mysql",
+  node["keystone"]["db"]["name"],
+  node["keystone"]["db"]["username"],
+  node["keystone"]["db"]["password"],
+  "rax_ix_token_expires",
+  "token",
+  "expires",
+  "execute[keystone-manage db_sync]",
+  :run,
+  :role => ks_mysql_role
+)
 
 # Setting attributes inside ruby_block means they'll get set at run time
 # rather than compile time; these files do not exist at compile time when chef
