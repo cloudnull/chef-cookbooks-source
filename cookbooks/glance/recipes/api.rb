@@ -37,7 +37,7 @@ else
   if node.recipe?"apache2"
     apache_site "openstack-glance-api" do
       enable false
-      notifies :restart, "service[apache2]", :immediately
+      notifies :restart, "service[apache2]", :delayed
     end
   end
 end
@@ -47,10 +47,8 @@ service "glance-api" do
   supports :status => true, :restart => true
   unless api_endpoint["scheme"] == "https"
     action :enable
-    subscribes :restart, "template[/etc/glance/glance-api.conf]", :immediately
-    subscribes :restart,
-      "template[/etc/glance/glance-api-paste.ini]",
-      :immediately
+    subscribes :restart, "template[/etc/glance/glance-api.conf]", :delayed
+    subscribes :restart, "template[/etc/glance/glance-api-paste.ini]", :delayed
   else
     action [ :disable, :stop ]
   end

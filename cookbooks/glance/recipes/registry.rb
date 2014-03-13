@@ -47,24 +47,9 @@ service "glance-registry" do
   supports :status => true, :restart => true
   unless registry_endpoint["scheme"] == "https"
     action :enable
-    subscribes :restart,
-      "template[/etc/glance/glance-registry.conf]",
-      :immediately
-    subscribes :restart,
-      "template[/etc/glance/glance-registry-paste.ini]",
-      :immediately
+    subscribes :restart, "template[/etc/glance/glance-registry.conf]", :delayed
+    subscribes :restart, "template[/etc/glance/glance-registry-paste.ini]", :delayed
   else
     action [ :disable, :stop ]
   end
-end
-
-# glance-api gets pulled in when we install glance-registry.  Unless we are
-# meant to be a glance-api node too, make sure it's stopped
-service "glance-api" do
-  service_name platform_options["glance_api_service"]
-  supports :status => true, :restart => true
-  action [:stop, :disable]
-  not_if {
-    node.run_list.expand(node.chef_environment).recipes.include?("glance::api")
-  }
 end

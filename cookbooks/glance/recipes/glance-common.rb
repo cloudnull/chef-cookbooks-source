@@ -70,23 +70,11 @@ registry_endpoint = get_access_endpoint("glance-registry", "glance", "registry")
 # Only use glance image cacher if we aren't using file for our backing store.
 glance_flavor = settings["api"]["flavor"]
 
-# Possible combinations of options here
-# - default_store=file
-#     * no other options required
-# - default_store=swift
-#     * if swift_store_auth_address is not defined
-#         - default to local swift
-#     * else if swift_store_auth_address is defined
-#         - get swift_store_auth_address, swift_store_user, swift_store_key,
-#           and swift_store_auth_version from the node attributes and use them
-#           to connect to the swift compatible API service running elsewhere
-#           (possibly Rackspace Cloud Files).
-#
 if glance["api"]["swift_store_auth_address"].nil? and glance["api"]["default_store"] == "swift"
 
   swift_store_auth_address =
     "http://#{ks_admin_endpoint['host']}:" +
-    ks_service_endpoint['port'] +
+    ks__endpoint['port'] +
     ks_service_endpoint['path']
 
   swift_store_user =
@@ -161,7 +149,7 @@ template "/etc/glance/glance-registry.conf" do
     "glance_flavor" => glance_flavor
   )
   if registry_bind["scheme"] == "https"
-    notifies :restart, "service[apache2]", :immediately
+    notifies :restart, "service[apache2]", :delayed
   end
 end
 
@@ -171,7 +159,7 @@ cookbook_file "/etc/glance/glance-registry-paste.ini" do
   group "glance"
   mode "0600"
   if registry_bind["scheme"] == "https"
-    notifies :restart, "service[apache2]", :immediately
+    notifies :restart, "service[apache2]", :delayed
   end
 end
 
@@ -240,7 +228,7 @@ template "/etc/glance/glance-api.conf" do
     "service_pass" => settings["service_pass"]
   )
   if api_bind["scheme"] == "https"
-    notifies :restart, "service[apache2]", :immediately
+    notifies :restart, "service[apache2]", :delayed
   end
 end
 
@@ -250,6 +238,6 @@ cookbook_file "/etc/glance/glance-api-paste.ini" do
   group "glance"
   mode "0600"
   if api_bind["scheme"] == "https"
-    notifies :restart, "service[apache2]", :immediately
+    notifies :restart, "service[apache2]", :delayed
   end
 end
