@@ -23,9 +23,19 @@ execute "install_genastack_keystone_api" do
   action :run
 end
 
-ks_setup_role = node["keystone"]["setup_role"]
-ks_mysql_role = node["keystone"]["mysql_role"]
-ks_api_role = node["keystone"]["api_role"]
+directory "/etc/keystone" do
+  action :create
+  owner "keystone"
+  group "keystone"
+  mode "0700"
+end
+
+execute "keystone-manage pki_setup" do
+  user "keystone"
+  group "keystone"
+  command "keystone-manage pki_setup"
+  action :run
+end
 
 # fixup the keystone.log ownership if it exists
 file "/var/log/keystone/keystone.log" do
@@ -34,6 +44,14 @@ file "/var/log/keystone/keystone.log" do
   mode "0600"
   only_if { ::File.exists?("/var/log/keystone/keystone.log") }
 end
+
+file "/var/lib/keystone/keystone.db" do
+  action :delete
+end
+
+ks_setup_role = node["keystone"]["setup_role"]
+ks_mysql_role = node["keystone"]["mysql_role"]
+ks_api_role = node["keystone"]["api_role"]
 
 if node.recipe? "apache2"
   # Used if SSL was or is enabled
@@ -57,7 +75,7 @@ if node.recipe? "apache2"
   execute "Disable https" do
     command "rm -f #{vhost_location}"
     only_if { File.exists?(vhost_location) }
-    notifies :restart, "service[apache2]", :immediately
+    notifies :restart, "service[apache2]", :delayed
     action :nothing
   end
 end
@@ -81,8 +99,8 @@ service "keystone" do
   supports :status => true, :restart => true
   unless end_point_schemes.any? {|scheme| scheme == "https"}
     action :enable
-    subscribes :restart, "template[/etc/keystone/keystone.conf]", :immediately
-    notifies :run, "execute[Keystone: sleep]", :immediately
+    subscribes :restart, "template[/etc/keystone/keystone.conf]", :delayed
+    notifies :run, "execute[Keystone: sleep]", :delayed
   else
     action [ :disable, :stop ]
   end
@@ -95,23 +113,9 @@ else
   if node.recipe? "apache2"
     apache_site "openstack-keystone" do
       enable false
-      notifies :restart, "service[apache2]", :immediately
+      notifies :restart, "service[apache2]", :delayed
     end
   end
-end
-
-directory "/etc/keystone" do
-  action :create
-  owner "keystone"
-  group "keystone"
-  mode "0700"
-end
-
-execute "keystone-manage pki_setup" do
-  user "keystone"
-  group "keystone"
-  command "keystone-manage pki_setup"
-  action :nothing
 end
 
 settings = get_settings_by_role(ks_setup_role, "keystone")
@@ -132,7 +136,8 @@ db_info = {
   "user" => settings["db"]["username"],
   "pass" => settings["db"]["password"],
   "name" => settings["db"]["name"],
-  "ipaddress" => mysql_info["host"] }
+  "ipaddress" => mysql_info["host"]
+}
 
 ks_admin_endpoint = get_access_endpoint(ks_api_role, "keystone", "admin-api")
 ks_service_endpoint = get_access_endpoint(ks_api_role, "keystone", "service-api")
@@ -155,7 +160,6 @@ template "/etc/keystone/keystone.conf" do
   owner "keystone"
   group "keystone"
   mode "0600"
-
   variables(
     :debug => settings["debug"],
     :verbose => settings["verbose"],
@@ -174,17 +178,13 @@ template "/etc/keystone/keystone.conf" do
     :notification_driver => notification_driver,
     :notification_topics => node["keystone"]["notification"]["topics"]
   )
-  # The pki_setup runs via postinst on Ubuntu, but doesn't run via package
-  # installation on CentOS.
-  if platform?(%w{redhat centos fedora scientific})
-    notifies :run, "execute[keystone-manage pki_setup]", :immediately
-  end
+
   # FIXME: Workaround for https://bugs.launchpad.net/keystone/+bug/1176270
   subscribes :create, "keystone_role[Get Member role-id]", :delayed
   unless end_point_schemes.any? {|scheme| scheme == "https"}
-    notifies :restart, "service[keystone]", :immediately
+    notifies :restart, "service[keystone]", :delayed
   else
-    notifies :restart, "service[apache2]", :immediately
+    notifies :restart, "service[apache2]", :delayed
   end
 end
 
@@ -200,8 +200,4 @@ template "/etc/cron.d/keystone-token-cleanup" do
       "keystone_db_host" => db_info["ipaddress"],
       "keystone_db_name" => db_info["name"]
   )
-end
-
-file "/var/lib/keystone/keystone.db" do
-  action :delete
 end
