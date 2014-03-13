@@ -80,8 +80,6 @@ if node.recipe? "apache2"
   end
 end
 
-platform_options = node["keystone"]["platform"]
-
 execute "Keystone: sleep" do
   command "sleep 10s"
   action :nothing
@@ -89,10 +87,6 @@ end
 
 ks_admin_bind = get_bind_endpoint("keystone", "admin-api")
 ks_service_bind = get_bind_endpoint("keystone", "service-api")
-ks_internal_bind = get_bind_endpoint("keystone", "internal-api")
-end_point_schemes = [ks_service_bind["scheme"],
-                     ks_admin_bind["scheme"],
-                     ks_internal_bind["scheme"]]
 
 settings = get_settings_by_role(ks_setup_role, "keystone")
 mysql_info = get_mysql_endpoint(ks_mysql_role)

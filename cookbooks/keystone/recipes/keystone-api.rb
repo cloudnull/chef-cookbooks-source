@@ -71,6 +71,16 @@ if node["keystone"]["pki"]["enabled"] == true
   end
 end
 
+ks_admin_bind = get_bind_endpoint("keystone", "admin-api")
+ks_service_bind = get_bind_endpoint("keystone", "service-api")
+ks_internal_bind = get_bind_endpoint("keystone", "internal-api")
+end_point_schemes = [
+  ks_service_bind["scheme"],
+  ks_admin_bind["scheme"],
+  ks_internal_bind["scheme"]
+]
+
+platform_options = node["keystone"]["platform"]
 service "keystone" do
   service_name platform_options["keystone_service"]
   supports :status => true, :restart => true
