@@ -39,6 +39,11 @@ file "/var/lib/glance/glance.sqlite" do
   action :delete
 end
 
+# Get api/registry endpoint bind info
+api_bind = get_bind_endpoint("glance", "api")
+registry_bind = get_bind_endpoint("glance", "registry")
+
+# Place some files on the host
 cookbook_file "/etc/glance/glance-registry-paste.ini" do
   source "glance-registry-paste.ini"
   owner "glance"
@@ -80,10 +85,6 @@ keystone = get_settings_by_role("keystone-setup", "keystone")
 # Get settings from role[glance-api]
 glance = get_settings_by_role("glance-api", "glance")
 
-# Get api/registry endpoint bind info
-api_bind = get_bind_endpoint("glance", "api")
-registry_bind = get_bind_endpoint("glance", "registry")
-
 # Search for glance-registry endpoint info
 registry_endpoint = get_access_endpoint("glance-registry", "glance", "registry")
 
@@ -91,14 +92,8 @@ registry_endpoint = get_access_endpoint("glance-registry", "glance", "registry")
 glance_flavor = settings["api"]["flavor"]
 
 if glance["api"]["swift_store_auth_address"].nil? and glance["api"]["default_store"] == "swift"
-  swift_store_auth_address =
-    "http://#{ks_admin_endpoint['host']}:" +
-    ks__endpoint['port'] +
-    ks_service_endpoint['path']
-
-  swift_store_user =
-    "#{glance['service_tenant_name']}:#{glance['service_user']}"
-
+  swift_store_auth_address = "http://#{ks_admin_endpoint['host']}:" + ks__endpoint['port'] + ks_service_endpoint['path']
+  swift_store_user = "#{glance['service_tenant_name']}:#{glance['service_user']}"
   swift_store_key = settings["service_pass"]
   swift_store_auth_version = 2
 else
