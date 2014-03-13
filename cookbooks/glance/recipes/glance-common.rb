@@ -19,25 +19,51 @@
 #
 #
 
-# only run this if do_package_upgrade is enabled.  If you upgrade the package
-# outside of chef you will need to run 'glance-manage db_sync' by hand.
-execute "glance-manage db_sync" do
-  user "glance"
-  group "glance"
-  command "glance-manage db_sync"
-  action :nothing
+# Get settings from role[glance-setup]
+if ! (settings = get_settings_by_role("glance-setup", "glance"))
+  msg = "No servers in your environment contain the glance::setup role!"
+  Chef::Application.fatal!(msg)
 end
-
-replicator_count = get_nodes_by_recipe("glance::replicator").length
 
 if get_role_count("ceilometer-setup") == 1 or replicator_count > 0
   node.set["glance"]["api"]["notifier_strategy"] = "rabbit"
 end
 
+# Install all of glance
+execute "install_genastack_glance" do
+  command "genastack glance"
+  action :run
+end
+
+file "/var/lib/glance/glance.sqlite" do
+  action :delete
+end
+
+cookbook_file "/etc/glance/glance-registry-paste.ini" do
+  source "glance-registry-paste.ini"
+  owner "glance"
+  group "glance"
+  mode "0600"
+  if registry_bind["scheme"] == "https"
+    notifies :restart, "service[apache2]", :delayed
+  end
+end
+
+cookbook_file "/etc/glance/glance-api-paste.ini" do
+  source "glance-api-paste.ini"
+  owner "glance"
+  group "glance"
+  mode "0600"
+  if api_bind["scheme"] == "https"
+    notifies :restart, "service[apache2]", :delayed
+  end
+end
+
+replicator_count = get_nodes_by_recipe("glance::replicator").length
+
 # Search for rabbit endpoint info
 rabbit_info = get_access_endpoint("rabbitmq-server", "rabbitmq", "queue")
 rabbit_settings = get_settings_by_role("rabbitmq-server", "rabbitmq")
-
 
 # Search for mysql endpoint info
 mysql_info = get_mysql_endpoint
@@ -54,12 +80,6 @@ keystone = get_settings_by_role("keystone-setup", "keystone")
 # Get settings from role[glance-api]
 glance = get_settings_by_role("glance-api", "glance")
 
-# Get settings from role[glance-setup]
-if ! (settings = get_settings_by_role("glance-setup", "glance"))
-  msg = "No servers in your environment contain the glance::setup role!"
-  Chef::Application.fatal!(msg)
-end
-
 # Get api/registry endpoint bind info
 api_bind = get_bind_endpoint("glance", "api")
 registry_bind = get_bind_endpoint("glance", "registry")
@@ -71,7 +91,6 @@ registry_endpoint = get_access_endpoint("glance-registry", "glance", "registry")
 glance_flavor = settings["api"]["flavor"]
 
 if glance["api"]["swift_store_auth_address"].nil? and glance["api"]["default_store"] == "swift"
-
   swift_store_auth_address =
     "http://#{ks_admin_endpoint['host']}:" +
     ks__endpoint['port'] +
@@ -89,6 +108,12 @@ else
   swift_store_user = settings["api"]["swift_store_user"]
 end
 
+# Set the notifications topic
+if glance["api"]["default_store"] == "file" and get_role_count('single-controller', true) == 0
+  glance_notifications = "glance_notifications"
+else
+  glance_notifications = glance["api"]["notification_topic"]
+end
 
 template "/etc/glance/glance-cache.conf" do
   source "glance-cache.conf.erb"
@@ -111,7 +136,6 @@ template "/etc/glance/glance-cache.conf" do
     "swift_enable_snet" => glance["api"]["swift"]["enable_snet"]
   )
 end
-
 
 template "/etc/glance/glance-scrubber.conf" do
   source "glance-scrubber.conf.erb"
@@ -151,23 +175,6 @@ template "/etc/glance/glance-registry.conf" do
   if registry_bind["scheme"] == "https"
     notifies :restart, "service[apache2]", :delayed
   end
-end
-
-cookbook_file "/etc/glance/glance-registry-paste.ini" do
-  source "glance-registry-paste.ini"
-  owner "glance"
-  group "glance"
-  mode "0600"
-  if registry_bind["scheme"] == "https"
-    notifies :restart, "service[apache2]", :delayed
-  end
-end
-
-# Set the notifications topic
-if glance["api"]["default_store"] == "file" and get_role_count('single-controller', true) == 0
-  glance_notifications = "glance_notifications"
-else
-  glance_notifications = glance["api"]["notification_topic"]
 end
 
 template "/etc/glance/glance-api.conf" do
@@ -227,16 +234,6 @@ template "/etc/glance/glance-api.conf" do
     "service_user" => settings["service_user"],
     "service_pass" => settings["service_pass"]
   )
-  if api_bind["scheme"] == "https"
-    notifies :restart, "service[apache2]", :delayed
-  end
-end
-
-cookbook_file "/etc/glance/glance-api-paste.ini" do
-  source "glance-api-paste.ini"
-  owner "glance"
-  group "glance"
-  mode "0600"
   if api_bind["scheme"] == "https"
     notifies :restart, "service[apache2]", :delayed
   end

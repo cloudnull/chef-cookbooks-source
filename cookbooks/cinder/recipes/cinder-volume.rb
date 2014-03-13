@@ -23,6 +23,19 @@ execute "install_genastack_cinder_volume" do
   action :run
 end
 
+# Create Cinder Config Directory
+directory "/etc/tgt/conf.d/" do
+  mode "755"
+  recursive true
+end
+
+# Create Cinder lock dir
+directory "/var/lock/cinder/" do
+  mode "755"
+  owner "cinder"
+  group "root"
+end
+
 platform_options = node["cinder"]["platform"]
 
 include_recipe "cinder::cinder-common"
@@ -39,19 +52,6 @@ service "iscsitarget" do
   service_name platform_options["cinder_iscsitarget_service"]
   supports :status => true, :restart => true
   action :enable
-end
-
-# Create Cinder Config Directory
-directory "/etc/tgt/conf.d/" do
-  mode "755"
-  recursive true
-end
-
-# Create Cinder lock dir
-directory "/var/lock/cinder/" do
-  mode "755"
-  owner "cinder"
-  group "root"
 end
 
 # Drop targets conf
@@ -137,7 +137,7 @@ case node["cinder"]["storage"]["provider"]
       ruby_block "create cinder cephx client" do
         block do
 
-          rbd_user_keyring_file="/etc/ceph/ceph.client.#{rbd_user}.keyring" 
+          rbd_user_keyring_file="/etc/ceph/ceph.client.#{rbd_user}.keyring"
           mon_keyring_file = "#{Chef::Config[:file_cache_path]}/#{node['hostname']}.mon.keyring"
 
           unless File.exist?(rbd_user_keyring_file)

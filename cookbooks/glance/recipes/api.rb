@@ -25,8 +25,20 @@ end
 
 include_recipe "glance::glance-common"
 
-platform_options = node["glance"]["platform"]
+# Configure glance-cache-pruner to run every 30 minutes
+cron "glance-cache-pruner" do
+  minute "*/30"
+  command "/usr/bin/glance-cache-pruner"
+end
 
+# Configure glance-cache-cleaner to run at 00:01 everyday
+cron "glance-cache-cleaner" do
+  minute "01"
+  hour "00"
+  command "/usr/bin/glance-cache-cleaner"
+end
+
+platform_options = node["glance"]["platform"]
 api_endpoint = get_bind_endpoint("glance", "api")
 internal_api_endpoint = get_bind_endpoint("glance", "internal-api")
 admin_api_endpoint = get_bind_endpoint("glance", "admin-api")
@@ -70,21 +82,34 @@ end
 ks_api_role = "keystone-api"
 ks_ns = "keystone"
 ks_admin_endpoint = get_access_endpoint(ks_api_role, ks_ns, "admin-api")
-
-# Get settings from role[keystone-setup]
 keystone = get_settings_by_role("keystone-setup", "keystone")
 
-# Configure glance-cache-pruner to run every 30 minutes
-cron "glance-cache-pruner" do
-  minute "*/30"
-  command "/usr/bin/glance-cache-pruner"
+# Register Image Service
+keystone_service "Register Image Service" do
+  auth_host ks_admin_endpoint["host"]
+  auth_port ks_admin_endpoint["port"]
+  auth_protocol ks_admin_endpoint["scheme"]
+  api_ver ks_admin_endpoint["path"]
+  auth_token keystone["admin_token"]
+  service_name "glance"
+  service_type "image"
+  service_description "Glance Image Service"
+  action :create
 end
 
-# Configure glance-cache-cleaner to run at 00:01 everyday
-cron "glance-cache-cleaner" do
-  minute "01"
-  hour "00"
-  command "/usr/bin/glance-cache-cleaner"
+# Register Image Endpoint
+keystone_endpoint "Register Image Endpoint" do
+  auth_host ks_admin_endpoint["host"]
+  auth_port ks_admin_endpoint["port"]
+  auth_protocol ks_admin_endpoint["scheme"]
+  api_ver ks_admin_endpoint["path"]
+  auth_token keystone["admin_token"]
+  service_type "image"
+  endpoint_region node["osops"]["region"]
+  endpoint_adminurl admin_api_endpoint["uri"]
+  endpoint_internalurl internal_api_endpoint["uri"]
+  endpoint_publicurl api_endpoint["uri"]
+  action :recreate
 end
 
 # are we using rbd to store our images?
@@ -137,32 +162,4 @@ if node['glance']['api']['default_store'] == "rbd" && rcb_safe_deref(node, "ceph
       end
     end
   end
-end
-
-# Register Image Service
-keystone_service "Register Image Service" do
-  auth_host ks_admin_endpoint["host"]
-  auth_port ks_admin_endpoint["port"]
-  auth_protocol ks_admin_endpoint["scheme"]
-  api_ver ks_admin_endpoint["path"]
-  auth_token keystone["admin_token"]
-  service_name "glance"
-  service_type "image"
-  service_description "Glance Image Service"
-  action :create
-end
-
-# Register Image Endpoint
-keystone_endpoint "Register Image Endpoint" do
-  auth_host ks_admin_endpoint["host"]
-  auth_port ks_admin_endpoint["port"]
-  auth_protocol ks_admin_endpoint["scheme"]
-  api_ver ks_admin_endpoint["path"]
-  auth_token keystone["admin_token"]
-  service_type "image"
-  endpoint_region node["osops"]["region"]
-  endpoint_adminurl admin_api_endpoint["uri"]
-  endpoint_internalurl internal_api_endpoint["uri"]
-  endpoint_publicurl api_endpoint["uri"]
-  action :recreate
 end

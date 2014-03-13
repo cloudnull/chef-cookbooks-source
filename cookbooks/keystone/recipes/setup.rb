@@ -17,12 +17,6 @@
 # limitations under the License.
 #
 
-# Install all of keystone
-execute "install_genastack_keystone" do
-  command "genastack keystone"
-  action :run
-end
-
 ks_setup_role = node["keystone"]["setup_role"]
 ks_mysql_role = node["keystone"]["mysql_role"]
 ks_api_role = node["keystone"]["api_role"]

@@ -17,12 +17,6 @@
 # limitations under the License.
 #
 
-# Install cinder
-execute "install_genastack_cinder" do
-  command "genastack cinder"
-  action :run
-end
-
 ::Chef::Recipe.send(:include, Opscode::OpenSSL::Password)
 
 # Allow for using a well known db password

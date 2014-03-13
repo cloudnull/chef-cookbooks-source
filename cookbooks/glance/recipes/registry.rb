@@ -37,7 +37,7 @@ else
   if node.recipe?"apache2"
     apache_site "openstack-glance-registry" do
       enable false
-      notifies :restart, "service[apache2]", :immediately
+      notifies :restart, "service[apache2]", :delayed
     end
   end
 end

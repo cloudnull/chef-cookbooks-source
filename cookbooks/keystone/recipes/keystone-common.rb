@@ -16,10 +16,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-
 # Install all of keystone
-execute "install_genastack_keystone_api" do
-  command "genastack keystone_api"
+execute "install_genastack_keystone" do
+  command "genastack keystone"
   action :run
 end
 

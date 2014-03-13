@@ -17,6 +17,12 @@
 # limitations under the License.
 #
 
+# Install cinder
+execute "install_genastack_cinder" do
+  command "genastack cinder"
+  action :run
+end
+
 # Create Cinder User
 user "cinder" do
   comment "openstack cinder user"

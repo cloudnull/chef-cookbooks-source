@@ -16,11 +16,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-# Install all of glance
-execute "install_genastack_glance" do
-  command "genastack glance"
-  action :run
-end
 
 # make sure we die early if there are glance-setups other than us
 if get_role_count("glance-setup", false) > 0
@@ -66,11 +61,7 @@ execute "glance-manage db_sync" do
   user "glance"
   group "glance"
   command "glance-manage db_sync"
-  action :run
-end
-
-file "/var/lib/glance/glance.sqlite" do
-  action :delete
+  action :nothing
 end
 
 # Register Service Tenant
