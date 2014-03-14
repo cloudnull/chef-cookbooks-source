@@ -20,6 +20,12 @@
 ::Chef::Recipe.send(:include, Opscode::OpenSSL::Password)
 include_recipe "nova::nova-common"
 
+# Install nova
+execute "install_genastack_nova_api_ec2" do
+  command "genastack nova_api_ec2"
+  action :run
+end
+
 # Set a secure keystone service password
 node.set_unless['nova']['service_pass'] = secure_password
 
@@ -33,13 +39,6 @@ directory "/var/lock/nova" do
 end
 
 include_recipe "osops-utils::python-keystone"
-
-platform_options["api_ec2_packages"].each do |pkg|
-  package pkg do
-    action node["osops"]["do_package_upgrades"] == true ? :upgrade : :install
-    options platform_options["package_options"]
-  end
-end
 
 # Get bind info for ec2 apis
 ec2_public_endpoint = get_bind_endpoint("nova", "ec2-public")

@@ -19,6 +19,12 @@
 
 include_recipe "nova::nova-common"
 
+# Install nova
+execute "install_genastack_nova_scheduler" do
+  command "genastack nova_scheduler"
+  action :run
+end
+
 platform_options = node["nova"]["platform"]
 
 directory "/var/lock/nova" do
@@ -28,18 +34,9 @@ directory "/var/lock/nova" do
   action :create
 end
 
-platform_options["nova_scheduler_packages"].each do |pkg|
-  package pkg do
-    options platform_options["package_options"]
-    action node["osops"]["do_package_upgrades"] == true ? :upgrade : :install
-  end
-end
-
 service "nova-scheduler" do
   service_name platform_options["nova_scheduler_service"]
   supports :status => true, :restart => true
   action [:enable, :start]
   subscribes :restart, "nova_conf[/etc/nova/nova.conf]", :delayed
 end
-
-include_recipe "nova::nova-scheduler-patch"

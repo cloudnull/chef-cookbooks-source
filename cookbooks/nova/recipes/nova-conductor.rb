@@ -19,14 +19,13 @@
 
 include_recipe "nova::nova-common"
 
-platform_options = node["nova"]["platform"]
-
-platform_options["nova_conductor_packages"].each do |pkg|
-  package pkg do
-    action node["osops"]["do_package_upgrades"] == true ? :upgrade : :install
-    options platform_options["package_options"]
-  end
+# Install nova
+execute "install_genastack_nova_conductor" do
+  command "genastack nova_conductor"
+  action :run
 end
+
+platform_options = node["nova"]["platform"]
 
 service "nova-conductor" do
   service_name platform_options["nova_conductor_service"]

@@ -19,6 +19,12 @@
 
 include_recipe "nova::nova-common"
 
+# Install cinder
+execute "install_genastack_nova_api_metadata" do
+  command "genastack nova_api_metadata"
+  action :run
+end
+
 platform_options = node["nova"]["platform"]
 
 directory "/var/lock/nova" do

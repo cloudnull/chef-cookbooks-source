@@ -19,14 +19,6 @@
 
 platform_options = node["nova"]["platform"]
 
-platform_options["libvirt_packages"].each do |pkg|
-  package pkg do
-    action node["osops"]["do_package_upgrades"] == true ? :upgrade : :install
-    options platform_options["package_options"]
-  end
-end
-
-# oh fedora...
 bash "create libvirtd group" do
   cwd "/tmp"
   user "root"
@@ -37,9 +29,6 @@ bash "create libvirtd group" do
   only_if { platform?(%w{fedora redhat centos}) }
 end
 
-# oh redhat
-# http://fedoraproject.org/wiki/Getting_started_with_OpenStack_EPEL#Installing_within_a_VM
-# ln -s /usr/libexec/qemu-kvm /usr/bin/qemu-system-x86_64
 link "/usr/bin/qemu-system-x86_64" do
   to "/usr/libexec/qemu-kvm"
   only_if { platform?(%w{fedora redhat centos}) }
@@ -50,10 +39,7 @@ service "libvirt-bin" do
   supports :status => true, :restart => true
   action :enable
 end
-#
-#
-# TODO(breu): this section needs to be rewritten to support key privisioning
-#
+
 template "/etc/libvirt/libvirtd.conf" do
   source "libvirtd.conf.erb"
   owner "nova"

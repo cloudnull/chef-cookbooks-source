@@ -19,7 +19,11 @@
 
 include_recipe "osops-utils::autoetchosts"
 
-platform_options = node["nova"]["platform"]
+# Install nova
+execute "install_genastack_nova" do
+  command "genastack nova"
+  action :run
+end
 
 # fix ownership of /var/log/nova/nova.log
 file "/var/log/nova/nova.log" do
@@ -27,16 +31,6 @@ file "/var/log/nova/nova.log" do
   group "nova"
   mode "0600"
   only_if { ::File.exists?("/var/log/nova/nova.log") }
-end
-
-# remove openstack-nova-volume on RHEL to cleanup package dependencies
-package "openstack-nova-volume" do
-  action :remove
-  only_if { node["platform_family"] == "rhel" }
-end
-
-platform_options["common_packages"].each do |pkg|
-  include_recipe "osops-utils::#{pkg}"
 end
 
 directory "/etc/nova" do
@@ -49,15 +43,12 @@ end
 # Search for keystone endpoint info
 ks_api_role = "keystone-api"
 ks_ns = "keystone"
-ks_admin_endpoint = get_access_endpoint(ks_api_role, ks_ns, "admin-api")
 # DE153 replacing public endpoint default for openrc with internal endpoint
 ks_internal_endpoint = get_access_endpoint(ks_api_role, ks_ns, "internal-api")
 # Get settings from role[keystone-setup]
 keystone = get_settings_by_role("keystone-setup", "keystone")
 # Get credential settings from role[keystone-setup]
 ec2_creds = get_settings_by_role("keystone-setup", "credentials")
-# Search for nova api endpoint info
-nova_api_endpoint = get_access_endpoint("nova-api-os-compute", "nova", "api")
 # Search for nova ec2 api endpoint info
 ec2_public_endpoint = get_access_endpoint("nova-api-ec2", "nova", "ec2-public")
 

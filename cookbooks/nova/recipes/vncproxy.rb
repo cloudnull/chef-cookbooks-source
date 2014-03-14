@@ -19,22 +19,18 @@
 
 include_recipe "nova::nova-common"
 
+# Install nova
+execute "install_genastack_nova_consoleauth" do
+  command "genastack nova_consoleauth"
+  action :run
+end
+
+execute "install_genastack_nova_novncproxy" do
+  command "genastack nova_novncproxy"
+  action :run
+end
+
 platform_options = node["nova"]["platform"]
-
-platform_options["nova_vncproxy_packages"].each do |pkg|
-  package pkg do
-    action node["osops"]["do_package_upgrades"] == true ? :upgrade : :install
-    options platform_options["package_options"]
-  end
-end
-
-# required for vnc console authentication
-platform_options["nova_vncproxy_consoleauth_packages"].each do |pkg|
-  package pkg do
-    action node["osops"]["do_package_upgrades"] == true ? :upgrade : :install
-    options platform_options["package_options"]
-  end
-end
 
 service platform_options["nova_vncproxy_service"] do
   service_name platform_options["nova_vncproxy_service"]
@@ -89,6 +85,7 @@ cookbook_file "/usr/share/novnc/index.html" do
   owner "root"
   group "root"
 end
+
 cookbook_file "/usr/share/novnc/include/index.html" do
   source "blank.html"
   mode 0644

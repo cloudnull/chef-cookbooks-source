@@ -19,54 +19,25 @@
 
 include_recipe "nova::nova-common"
 
+# Install nova
+execute "install_genastack_nova_compute" do
+  command "genastack nova_compute"
+  action :run
+end
+
 platform_options = node["nova"]["platform"]
 
-# NOTE(shep): Copying to a new array
-# this is due to Chef::Exceptions::ImmutableAttributeModification error
-# see http://www.opscode.com/blog/2013/02/05/chef-11-in-depth-attributes-changes/
-nova_compute_packages =
-  platform_options["nova_compute_packages"].each.collect { |x| x }
-
-if platform?(%w(ubuntu))
-  case node["nova"]["libvirt"]["virt_type"]
-  when "kvm"
-    nova_compute_packages.push("nova-compute-kvm")
-  when "qemu"
-    nova_compute_packages.push("nova-compute-qemu")
-  end
-end
-
-nova_compute_packages.each do |pkg|
-  package pkg do
-    action node["osops"]["do_package_upgrades"] == true ? :upgrade : :install
-    options platform_options["package_options"]
-  end
-end
-
 cinder_setup_info = get_settings_by_role("cinder-setup", "cinder")
-
-# NOTE(wilk): Copying to a new array
-# this is due to Chef::Exceptions::ImmutableAttributeModification error
-# see http://www.opscode.com/blog/2013/02/05/chef-11-in-depth-attributes-changes/
-cinder_multipath_packages =
-  platform_options["cinder_multipath_packages"].each.collect { |x| x }
 
 if not cinder_setup_info.nil? and
   cinder_setup_info["storage"]["provider"] == "emc" and
   cinder_setup_info["storage"]["enable_multipath"] == true
-  cinder_multipath_packages.each do |pkg|
-    package pkg do
-      action node["osops"]["do_package_upgrades"] == true ? :upgrade : :install
-      options platform_options["package_options"]
-    end
-  end
   template "/etc/multipath.conf" do
     source "emc_multipath.conf.erb"
     owner "root"
     group "root"
     mode "700"
   end
-  include_recipe "nova::nova-volume-multipath-patches"
 end
 
 cookbook_file "/etc/nova/nova-compute.conf" do
