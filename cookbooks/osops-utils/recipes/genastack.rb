@@ -33,3 +33,9 @@ execute "install_genastack" do
   creates "/etc/genastack_installed.lock"
   action :run
 end
+
+execute "source_genastack" do
+  command "source /etc/profile.d/openstack_default.sh"
+  action :run
+  only_if {File.exists?("/etc/profile.d/openstack_default.sh")}
+end

@@ -24,7 +24,6 @@ if get_role_count(node["keystone"]["setup_role"], false) > 0
 end
 
 ks_mysql_role = node["keystone"]["mysql_role"]
-ks_api_role = node["keystone"]["api_role"]
 
 ::Chef::Recipe.send(:include, Opscode::OpenSSL::Password)
 include_recipe "mysql::client"
@@ -93,16 +92,3 @@ add_index_stopgap(
   :run,
   :role => ks_mysql_role
 )
-
-# Setting attributes inside ruby_block means they'll get set at run time
-# rather than compile time; these files do not exist at compile time when chef
-# is first run.
-ruby_block "store key and certs in attributes" do
-  block do
-    if node["keystone"]["pki"]["enabled"] == true
-      node.set_unless["keystone"]["pki"]["key"] = File.read("/etc/keystone/ssl/private/signing_key.pem")
-      node.set_unless["keystone"]["pki"]["cert"] = File.read("/etc/keystone/ssl/certs/signing_cert.pem")
-      node.set_unless["keystone"]["pki"]["cacert"] = File.read("/etc/keystone/ssl/certs/ca.pem")
-    end
-  end
-end

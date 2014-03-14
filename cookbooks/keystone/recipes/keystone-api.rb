@@ -114,7 +114,6 @@ node["keystone"]["roles"].each do |role_key|
   end
 end
 
-# FIXME: Workaround for https://bugs.launchpad.net/keystone/+bug/1176270
 keystone_role "Get Member role-id" do
   auth_host ks_admin_endpoint["host"]
   auth_port ks_admin_endpoint["port"]

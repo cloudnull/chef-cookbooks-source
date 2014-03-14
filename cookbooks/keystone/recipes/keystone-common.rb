@@ -37,6 +37,19 @@ execute "keystone-manage pki_setup" do
   not_if {File.exists?("/etc/keystone/ssl/private/signing_key.pem")}
 end
 
+# Setting attributes inside ruby_block means they'll get set at run time
+# rather than compile time; these files do not exist at compile time when chef
+# is first run.
+ruby_block "store key and certs in attributes" do
+  block do
+    if node["keystone"]["pki"]["enabled"] == true
+      node.set_unless["keystone"]["pki"]["key"] = File.read("/etc/keystone/ssl/private/signing_key.pem")
+      node.set_unless["keystone"]["pki"]["cert"] = File.read("/etc/keystone/ssl/certs/signing_cert.pem")
+      node.set_unless["keystone"]["pki"]["cacert"] = File.read("/etc/keystone/ssl/certs/ca.pem")
+    end
+  end
+end
+
 # fixup the keystone.log ownership if it exists
 file "/var/log/keystone/keystone.log" do
   owner "keystone"
